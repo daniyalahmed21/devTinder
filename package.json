@@ -5,11 +5,12 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/app.js",
-    "dev" : "nodemon src/app.js"
+    "dev": "nodemon src/app.js"
   },
   "author": "Daniyal Ahmed",
   "license": "ISC",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "mongoose": "^8.14.1"
   }
 }
