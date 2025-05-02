@@ -1,5 +1,5 @@
 const adminAuth = (req, res, next) => {
-  const Token = "xy";
+  const Token = "xyz";
   const Authorized = Token === "xyz";
   if (!Authorized) {
     res.status(401).send("Admin Not Authorized");
