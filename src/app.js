@@ -1,12 +1,15 @@
 const express = require("express");
-const { adminAuth, userAuth } = require("./middlewares/auth");
+const {  userAuth } = require("./middlewares/auth");
 const app = express();
 const { connectDb } = require("./config/database");
 const { User } = require("./models/user");
-const bcrypt  = require("bcryptjs");
+const bcrypt = require("bcryptjs");
+const cookieParser = require("cookie-parser");
+var jwt = require("jsonwebtoken");
 
 // Middleware to parse JSON will run for all request convert json to js obj and assign it to body
 app.use(express.json());
+app.use(cookieParser());
 
 //find user by email
 app.get("/feed", async (req, res) => {
@@ -63,24 +66,32 @@ app.post("/signup", async (req, res) => {
   res.send("User added successfully!");
 });
 
-app.post("/login",async(req,res)=>{
+app.post("/login", async (req, res) => {
   const { emailId, password } = req.body;
 
-  const user = await User.findOne({emailId})
-  console.log(user)
+  const user = await User.findOne({ emailId });
+  console.log(user);
 
-  if(!user){
-    throw new Error("invalid credentials")
+  if (!user) {
+    throw new Error("invalid credentials");
   }
-  const isPasswordValid = await bcrypt.compare(password,user.password)
+  const isPasswordValid = await bcrypt.compare(password, user.password);
 
-  if(!isPasswordValid){
-    throw new Error("invalid credentials")
+  if (!isPasswordValid) {
+    throw new Error("invalid credentials");
+  } else {
+    var token = jwt.sign({ id: user._id }, "shhhhh");
+
+    res.cookie("Token", token);
+    res.send("Login success");
   }
-  else{
-    res.send("Login success")
-  }
-})
+});
+
+app.get("/profile",userAuth, async (req, res) => {
+  
+  res.send(`Reading cookies of ${req.user.firstName}`);
+});
+
 connectDb()
   .then(() => {
     console.log("connection established successfully");
