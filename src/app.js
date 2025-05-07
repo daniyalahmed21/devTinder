@@ -17,9 +17,9 @@ app.use("/",profileRouter);
 app.use("/",requestRouter);
 
 
-app.use("*", (req, res) => {
-  res.status(404).send("Route not found");
-});
+// app.use("*", (req, res) => {
+//   res.status(404).send("Route not found");
+// });
 
 connectDb()
   .then(() => {
