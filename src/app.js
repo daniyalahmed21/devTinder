@@ -1,95 +1,24 @@
 const express = require("express");
-const {  userAuth } = require("./middlewares/auth");
 const app = express();
 const { connectDb } = require("./config/database");
-const { User } = require("./models/user");
-const bcrypt = require("bcryptjs");
 const cookieParser = require("cookie-parser");
-var jwt = require("jsonwebtoken");
+const {profileRouter} = require("./routes/profile")
+const {authRouter} = require("./routes/auth")
+const {requestRouter} = require("./routes/request")
 
-// Middleware to parse JSON will run for all request convert json to js obj and assign it to body
+
+//global middleware
 app.use(express.json());
 app.use(cookieParser());
 
-//find user by email
-app.get("/feed", async (req, res) => {
-  const emailId = req.body.emailId;
-  const users = await User.findOne({ emailId });
-  if (users) {
-    console.log(users.emailId);
-    res.send(users.emailId);
-  } else {
-    res.status(400).send("User not found!");
-  }
-});
+//routes
+app.use("/",authRouter)
+app.use("/",profileRouter); 
+app.use("/",requestRouter);
 
-//delete a user
-app.delete("/user", async (req, res) => {
-  try {
-    const id = req.body.Id;
-    await User.findByIdAndDelete(id);
-    res.send("User Deleted !");
-  } catch (err) {
-    console.error(err);
-    res.send("something went wrong");
-  }
-});
 
-//update a user
-app.patch("/user", async (req, res) => {
-  const userId = req.body.Id;
-  const Data = req.body;
-  try {
-    await User.findByIdAndUpdate(userId, Data, {
-      runValidators: true,
-    });
-    res.send("User updated !");
-  } catch (err) {
-    console.error("Update Failed " + err.message);
-    res.status(400).send("something went wrong");
-  }
-});
-
-app.post("/signup", async (req, res) => {
-  const { firstName, lastName, emailId, password } = req.body;
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  const user = new User({
-    firstName,
-    lastName,
-    emailId,
-    password: hashedPassword,
-  });
-
-  await user.save();
-  res.send("User added successfully!");
-});
-
-app.post("/login", async (req, res) => {
-  const { emailId, password } = req.body;
-
-  const user = await User.findOne({ emailId });
-  console.log(user);
-
-  if (!user) {
-    throw new Error("invalid credentials");
-  }
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-
-  if (!isPasswordValid) {
-    throw new Error("invalid credentials");
-  } else {
-    var token = jwt.sign({ id: user._id }, "shhhhh");
-
-    res.cookie("Token", token);
-    res.send("Login success");
-  }
-});
-
-app.get("/profile",userAuth, async (req, res) => {
-  
-  res.send(`Reading cookies of ${req.user.firstName}`);
+app.use("*", (req, res) => {
+  res.status(404).send("Route not found");
 });
 
 connectDb()
