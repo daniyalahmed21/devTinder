@@ -16,11 +16,6 @@ app.use("/",authRouter)
 app.use("/",profileRouter); 
 app.use("/",requestRouter);
 
-
-// app.use("*", (req, res) => {
-//   res.status(404).send("Route not found");
-// });
-
 connectDb()
   .then(() => {
     console.log("connection established successfully");
