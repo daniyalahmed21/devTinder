@@ -31,13 +31,6 @@ requestRouter.post(
           .json({ error: `${status} is not a valid status` });
       }
 
-      // Prevent sending a request to self
-      if (toUserId === fromUserId.toString()) {
-        return res
-          .status(400)
-          .json({ error: "You cannot send a request to yourself" });
-      }
-
       // Optional: Prevent duplicate request
       const existingRequest = await ConnectionRequest.findOne({
         $or: [
@@ -66,6 +59,48 @@ requestRouter.post(
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Error while sending connection request" });
+    }
+  }
+);
+
+requestRouter.post(
+  "/request/review/:status/:requestId",
+  userAuth,
+  async (req, res) => {
+    try {
+      const LoggedInUser = req.user;
+      const { status, requestId } = req.params;
+
+      const allowedStatus = ["accepted", "rejected"];
+
+      if (!allowedStatus.includes(status)) {
+        res.status(400).json({
+          msg: "Status not allowed",
+        });
+      }
+
+      const connectionRequest = await ConnectionRequest.findOne({
+        _id: requestId,
+        toUserId: LoggedInUser._id,
+        status: "interested",
+      });
+      
+      if (!connectionRequest) {
+        res.status(404).json({
+          msg: "Connection request not found",
+        });
+      }
+      connectionRequest.status = status;
+      const data = await connectionRequest.save();
+
+      res.json({
+        msg: `Connection request ${status}`,
+        data: data
+      });
+      
+    } catch (err) {
+      console.error(err);
+      res.status(404).json({ Error: +err.message });
     }
   }
 );
