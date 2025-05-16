@@ -20,8 +20,7 @@ const userSchema = new Schema(
       required: [true, "Email is required"],
       trim: true,
       lowercase: true,
-      unique : true,
-      trim : true,
+      unique: true,
       validate: {
         validator: (value) => validator.isEmail(value),
         message: "Enter a valid email address",
@@ -44,23 +43,36 @@ const userSchema = new Schema(
         message: "Gender must be male, female, or others",
       },
     },
+    image: {
+      type: String,
+      default: "https://i0.wp.com/e-quester.com/wp-content/uploads/2021/11/placeholder-image-person-jpg-1.jpg?fit=820%2C678&ssl=1", // URL or base64 string
+    },
+    about: {
+      type: String,
+      maxlength: [500, "About section cannot exceed 500 characters"],
+    },
+    skills: {
+      type: [String], // Array of skill names
+      default: [],
+    }
   },
   {
     timestamps: true,
   }
 );
 
+// JWT method
 userSchema.methods.getJWT = function () {
   const user = this;
   var token = jwt.sign({ id: user._id }, "shhhhh");
   return token;
 };
 
+// Password validation method
 userSchema.methods.validatePassword = function (passwordInputByUser) {
   const user = this;
   const passwordHash = user.password;
-  const isPasswordValid = bcrypt.compare(passwordInputByUser, passwordHash);
-  return isPasswordValid;
+  return bcrypt.compare(passwordInputByUser, passwordHash);
 };
 
 const User = mongoose.model("User", userSchema);

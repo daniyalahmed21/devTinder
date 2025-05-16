@@ -34,16 +34,13 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
         $or : 
         [{toUserId:userId ,status : "accepted"},
         {fromUserId:userId ,status : "accepted"}]
-    }).populate("fromUserId",["firstName","lastName"])
-    .populate("toUserId",["firstName","lastName"])
+    }).populate("fromUserId",["firstName","lastName","image","about"])
+    .populate("toUserId",["firstName","lastName","image","about"])
 
     const formattedConnections = connections.map(conn=>{
         const isSender = conn.fromUserId._id.toString() === userId.toString()
-        const otherUser = isSender ? conn.toUserId : conn.fromUserId
-        return{
-            connectionId : conn._id,
-            connectionWith : otherUser
-        }
+        return isSender ? conn.toUserId : conn.fromUserId
+        
     })
 
 
@@ -76,16 +73,18 @@ userRouter.get("/feed", userAuth ,async(req, res)=>{
     }).select("toUserId fromUserId")
 
     const excludeFromFeed = new Set()
+    excludeFromFeed.add(userId.toString()); 
 
     connectionRequests.forEach(user=>{
       excludeFromFeed.add(user.toUserId.toString())
       excludeFromFeed.add(user.fromUserId.toString())
+
     })
 
 
     const feedUser = await User.find({
       _id : { $nin: Array.from(excludeFromFeed) }   //transform set into array and apply not in 
-    }).select("_id firstName lastName").skip(skipped).limit(limit)
+    }).select("_id firstName lastName image about skills").skip(skipped).limit(limit)
 
     res.send(feedUser)
 

@@ -10,7 +10,17 @@ authRouter.post("/signup", async (req, res) => {
     const error = validateSignupInput(req.body);
     if (error) return res.status(400).send(error);
 
-    const { firstName, lastName, emailId, password } = req.body;
+    const {
+      firstName,
+      lastName,
+      emailId,
+      password,
+      age,
+      gender,
+      image,
+      about,
+      skills,
+    } = req.body;
 
     const existingUser = await User.findOne({ emailId });
     if (existingUser) {
@@ -24,6 +34,11 @@ authRouter.post("/signup", async (req, res) => {
       lastName,
       emailId,
       password: hashedPassword,
+      age,
+      gender,
+      image,
+      about,
+      skills, 
     });
 
     await user.save();
@@ -61,7 +76,7 @@ authRouter.post("/login", async (req, res) => {
       res.cookie("Token", token);
       console.log(user)
   
-      res.send("Login success");
+      res.send(user);
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).send("Internal server error.");
@@ -73,7 +88,6 @@ authRouter.post("/logout", async(req, res) => {
     httpOnly: true,
     secure: true, // use only if you're on HTTPS
     sameSite: "strict",
-    path: "/", // must match the original path
   });
   res.send("Logout Successful!!");
 });
